@@ -533,7 +533,7 @@ function handleHeaderClick() {
         showGroupInfo.value = true
         emit('open-group-info')
     } else if (store.activeChat.type === 'private') {
-        emit('open-user-profile')
+        emit('open-user-profile', otherUser.value)
     }
 }
 
