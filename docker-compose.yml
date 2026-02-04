@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: messenger_app
+    volumes:
+      - ./src:/var/www
+    working_dir: /var/www
+    ports:
+      - "5173:5173"
+      - "6001:6001"
+    depends_on:
+      - mysql
+      - redis
+
+  nginx:
+    image: nginx:alpine
+    container_name: messenger_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www
+      - ./docker/nginx:/etc/nginx/conf.d
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:8.0
+    container_name: messenger_mysql
+    environment:
+      MYSQL_DATABASE: messenger
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+    - "3306:3306" 
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+
+  redis:
+    image: redis:alpine
+    container_name: messenger_redis
+
+volumes:
+  dbdata:

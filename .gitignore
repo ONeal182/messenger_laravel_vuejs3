@@ -1,0 +1,32 @@
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# IDE/project settings
+.idea/
+.vscode/
+.fleet/
+
+# Environment files (keep examples)
+.env
+.env.*
+!.env.example
+!.env.testing
+
+# Logs
+*.log
+
+# App dependencies/build artifacts (Laravel app lives in ./src)
+src/vendor/
+src/node_modules/
+src/public/build
+src/public/hot
+src/public/storage
+src/.phpunit.result.cache
+
+# Docker
+docker/**/.DS_Store
+docker/**/data/
+docker/**/logs/
+docker/**/runtime/
+docker-compose.override.yml

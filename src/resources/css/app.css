@@ -1,0 +1,40 @@
+@import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Manrope', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+:root {
+    --tg-accent: #53d3ff;
+    --tg-accent-strong: #a66bff;
+    --tg-ink: #e7efff;
+    --tg-muted: #90a7ce;
+    --tg-panel: #0f1c3a;
+    --tg-chat-bg: radial-gradient(circle at 30% 20%, #1c2f5d 0, transparent 30%),
+        radial-gradient(circle at 80% 10%, rgba(166, 107, 255, 0.25) 0, transparent 28%),
+        radial-gradient(circle at 70% 70%, rgba(83, 211, 255, 0.2) 0, transparent 30%),
+        linear-gradient(135deg, #0a122b 0%, #102147 50%, #0c1837 100%);
+}
+
+body {
+    background: radial-gradient(900px at 15% 10%, rgba(166, 107, 255, 0.25) 0, transparent 40%),
+        radial-gradient(1200px at 80% 0, rgba(83, 211, 255, 0.2) 0, transparent 45%),
+        linear-gradient(160deg, #0a122b 0%, #0f1c3a 45%, #0c1837 100%);
+    color: var(--tg-ink);
+    min-height: 100vh;
+}
+
+.tg-chat-bg {
+    background-image:
+        radial-gradient(circle at 20% 25%, rgba(166, 107, 255, 0.2) 0, rgba(166, 107, 255, 0) 22%),
+        radial-gradient(circle at 80% 15%, rgba(83, 211, 255, 0.25) 0, rgba(83, 211, 255, 0) 20%),
+        radial-gradient(circle at 60% 70%, rgba(166, 107, 255, 0.15) 0, rgba(166, 107, 255, 0) 24%),
+        var(--tg-chat-bg);
+}
