@@ -734,8 +734,7 @@ function tryInitialScroll(attempt = 0) {
         <div class="relative flex-1 min-h-0">
             <div
                 ref="messagesContainer"
-                class="flex-1 px-6 py-6 space-y-3 scroll-smooth absolute inset-0"
-                class="overflow-y-auto"
+                class="flex-1 px-6 py-6 space-y-3 scroll-smooth absolute inset-0 overflow-y-auto"
                 @scroll.passive="onScroll"
             >
                 <div v-if="!store.activeChat" class="text-[#90a7ce] text-sm">
