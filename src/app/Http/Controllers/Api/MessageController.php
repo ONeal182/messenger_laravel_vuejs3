@@ -12,6 +12,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
 use Throwable;
+use OpenApi\Attributes as OA;
 
 class MessageController extends Controller
 {
@@ -19,9 +20,36 @@ class MessageController extends Controller
         private readonly MessageService $messageService
     ) {}
 
-    /**
-     * POST /api/chats/{chat}/messages
-     */
+    #[OA\Post(
+        path: "/api/chats/{chat}/messages",
+        summary: "Отправить сообщение в чат",
+        tags: ["Messages"],
+        security: [["BearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "chat", in: "path", required: true, schema: new OA\Schema(type: "integer"), example: 10),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["body"],
+                properties: [
+                    new OA\Property(property: "body", type: "string", example: "Привет!"),
+                ],
+                example: ["body" => "Привет!"]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: "Сообщение отправлено",
+                content: new OA\JsonContent(properties: [
+                    new OA\Property(property: "message", ref: "#/components/schemas/Message"),
+                ])
+            ),
+            new OA\Response(response: 401, description: "Не авторизован"),
+            new OA\Response(response: 422, description: "Ошибки валидации"),
+        ]
+    )]
     public function store(Request $request, Chat $chat): JsonResponse
     {
         $request->validate([
@@ -39,9 +67,35 @@ class MessageController extends Controller
         ], 201);
     }
 
-    /**
-     * GET /api/chats/{chat}/messages
-     */
+    #[OA\Get(
+        path: "/api/chats/{chat}/messages",
+        summary: "Список сообщений чата",
+        tags: ["Messages"],
+        security: [["BearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "chat", in: "path", required: true, schema: new OA\Schema(type: "integer"), example: 10),
+            new OA\Parameter(name: "per_page", in: "query", schema: new OA\Schema(type: "integer", minimum: 1, maximum: 100), description: "Количество на странице (по умолчанию 10)", example: 10),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Список сообщений",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: "data",
+                            type: "array",
+                            items: new OA\Items(ref: "#/components/schemas/Message")
+                        ),
+                        new OA\Property(property: "links", nullable: true),
+                        new OA\Property(property: "meta", nullable: true),
+                    ],
+                    description: "Пагинация Laravel (data/links/meta)"
+                )
+            ),
+            new OA\Response(response: 401, description: "Не авторизован"),
+        ]
+    )]
     public function index(Request $request, Chat $chat): JsonResponse
     {
         // По умолчанию грузим по 10 сообщений, можно задавать per_page в запросе
@@ -57,9 +111,32 @@ class MessageController extends Controller
         return response()->json($messages);
     }
 
-    /**
-     * GET /api/chats/{chat}/messages/search
-     */
+    #[OA\Get(
+        path: "/api/chats/{chat}/messages/search",
+        summary: "Поиск сообщений в чате",
+        tags: ["Messages"],
+        security: [["BearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "chat", in: "path", required: true, schema: new OA\Schema(type: "integer"), example: 10),
+            new OA\Parameter(name: "query", in: "query", required: true, schema: new OA\Schema(type: "string"), example: "Привет"),
+            new OA\Parameter(name: "limit", in: "query", schema: new OA\Schema(type: "integer", minimum: 1, maximum: 50), example: 20),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Результаты поиска",
+                content: new OA\JsonContent(properties: [
+                    new OA\Property(
+                        property: "messages",
+                        type: "array",
+                        items: new OA\Items(ref: "#/components/schemas/Message")
+                    ),
+                ])
+            ),
+            new OA\Response(response: 401, description: "Не авторизован"),
+            new OA\Response(response: 422, description: "Ошибки валидации"),
+        ]
+    )]
     public function search(Request $request, Chat $chat): JsonResponse
     {
         $data = $request->validate([
@@ -79,10 +156,19 @@ class MessageController extends Controller
         ]);
     }
 
-    /**
-     * DELETE /api/messages/{message}
-     * Удалить сообщение только для себя
-     */
+    #[OA\Delete(
+        path: "/api/messages/{message}",
+        summary: "Удалить сообщение только для себя",
+        tags: ["Messages"],
+        security: [["BearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "message", in: "path", required: true, schema: new OA\Schema(type: "integer"), example: 501),
+        ],
+        responses: [
+            new OA\Response(response: 204, description: "Удалено"),
+            new OA\Response(response: 401, description: "Не авторизован"),
+        ]
+    )]
     public function delete(Request $request, Message $message): JsonResponse
     {
         $this->messageService->deleteForUser($message, $request->user());
@@ -90,15 +176,56 @@ class MessageController extends Controller
         return response()->json(null, 204);
     }
 
+    #[OA\Delete(
+        path: "/api/messages/{message}/all",
+        summary: "Удалить сообщение для всех",
+        tags: ["Messages"],
+        security: [["BearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "message", in: "path", required: true, schema: new OA\Schema(type: "integer"), example: 501),
+        ],
+        responses: [
+            new OA\Response(response: 204, description: "Удалено"),
+            new OA\Response(response: 401, description: "Не авторизован"),
+            new OA\Response(response: 403, description: "Нет прав"),
+        ]
+    )]
     public function destroy(Request $request, Message $message){
         $this->messageService->deleteForAll($message, $request->user());
 
         return response()->json(null, 204);
     }
 
-    /**
-     * POST /api/messages/{message}/forward
-     */
+    #[OA\Post(
+        path: "/api/messages/{message}/forward",
+        summary: "Переслать сообщение в другой чат",
+        tags: ["Messages"],
+        security: [["BearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "message", in: "path", required: true, schema: new OA\Schema(type: "integer"), example: 501),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["chat_id"],
+                properties: [
+                    new OA\Property(property: "chat_id", type: "integer", example: 55),
+                ],
+                example: ["chat_id" => 55]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: "Сообщение переслано",
+                content: new OA\JsonContent(properties: [
+                    new OA\Property(property: "message", ref: "#/components/schemas/Message"),
+                ])
+            ),
+            new OA\Response(response: 401, description: "Не авторизован"),
+            new OA\Response(response: 422, description: "Ошибки валидации"),
+        ]
+    )]
     public function forward(Request $request, Message $message): JsonResponse
     {
         $data = $request->validate([
@@ -114,6 +241,19 @@ class MessageController extends Controller
         return response()->json(['message' => $newMessage], 201);
     }
 
+    #[OA\Post(
+        path: "/api/chats/{chat}/typing",
+        summary: "Отметить набор текста пользователем",
+        tags: ["Messages"],
+        security: [["BearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "chat", in: "path", required: true, schema: new OA\Schema(type: "integer"), example: 10),
+        ],
+        responses: [
+            new OA\Response(response: 204, description: "Статус обновлен"),
+            new OA\Response(response: 401, description: "Не авторизован"),
+        ]
+    )]
     public function typing(Chat $chat, Request $request)
     {
         $user = $request->user();

@@ -1,0 +1,1326 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Messenger API",
+        "description": "1) Получи токен: POST /api/auth/login или /api/auth/register\n2) В Swagger UI нажми Authorize (замок справа) и введи: Bearer <token>\n3) После этого все защищённые запросы будут отправляться с заголовком Authorization.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "Базовый URL API"
+        }
+    ],
+    "paths": {
+        "/api/auth/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Регистрация нового пользователя",
+                "description": "Возвращает bearer-токен для дальнейших запросов. После регистрации сразу можно использовать его в заголовке `Authorization: Bearer <token>`.",
+                "operationId": "c7bb21a0d87049e161b8e4c9b0d909f2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nickname",
+                                    "email",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "nickname": {
+                                        "type": "string",
+                                        "example": "john_doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret123"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "nickname": "john_doe",
+                                "email": "user@example.com",
+                                "password": "secret123",
+                                "password_confirmation": "secret123"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Успешная регистрация",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthTokenResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Ошибки валидации"
+                    }
+                }
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Аутентификация и получение токена",
+                "description": "Возвращает bearer-токен Sanctum. Используй его в `Authorization: Bearer <token>` для всех защищённых эндпоинтов.",
+                "operationId": "dd51a484b7fa0f97c7680fdbde14cf5f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nickname",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "nickname": {
+                                        "type": "string",
+                                        "example": "john_doe"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret123"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "nickname": "john_doe",
+                                "password": "secret123"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Успешный вход",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthTokenResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Неверные учетные данные"
+                    },
+                    "422": {
+                        "description": "Ошибки валидации"
+                    }
+                }
+            }
+        },
+        "/api/auth/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Текущий пользователь",
+                "description": "Передай bearer-токен в заголовке `Authorization: Bearer <token>`.",
+                "operationId": "b5de204f5e452ef51327c691aa99e77c",
+                "responses": {
+                    "200": {
+                        "description": "Текущий пользователь",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "user": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Выход (отзыв текущего токена)",
+                "description": "Отзывает только тот токен, который передан в заголовке `Authorization: Bearer <token>`.",
+                "operationId": "df9bdc6c7a6d9f20b983526b2ec0f698",
+                "responses": {
+                    "200": {
+                        "description": "Выход выполнен, токен отозван"
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/ping": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Обновить online-статус",
+                "description": "Периодический пинг для присутствия. Требуется bearer-токен. Ограничение: до 30 запросов в минуту (throttle:30,1).",
+                "operationId": "587289fc592131da532a246555305a80",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    },
+                    "429": {
+                        "description": "Слишком часто — подожди"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/chats/private": {
+            "post": {
+                "tags": [
+                    "Chats"
+                ],
+                "summary": "Создать личный чат",
+                "operationId": "e9799472cd0ec7921f6f35ddf8ea1d63",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "description": "ID другого пользователя (не текущего)",
+                                        "type": "integer",
+                                        "example": 12
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "user_id": 12
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Чат создан",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "chat": {
+                                            "$ref": "#/components/schemas/Chat"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Личный чат уже существует",
+                        "content": {
+                            "application/json": {
+                                "schema": {},
+                                "example": {
+                                    "message": "Private chat already exists",
+                                    "chat_id": 5
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Ошибки валидации"
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/chats": {
+            "get": {
+                "tags": [
+                    "Chats"
+                ],
+                "summary": "Список чатов пользователя с количеством непрочитанных",
+                "description": "Возвращает только чаты текущего авторизованного пользователя (bearer токен обязателен).",
+                "operationId": "1b4c79f8be9c8d8682ddd42225df131b",
+                "responses": {
+                    "200": {
+                        "description": "Список чатов",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "chats": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Chat"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/chats/{chat}": {
+            "get": {
+                "tags": [
+                    "Chats"
+                ],
+                "summary": "Получить информацию о чате",
+                "operationId": "dfeb320a24b82bc30d4a03af6897e65f",
+                "parameters": [
+                    {
+                        "name": "chat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 10
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о чате",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "chat": {
+                                            "$ref": "#/components/schemas/Chat"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    },
+                    "404": {
+                        "description": "Чат не найден"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Chats"
+                ],
+                "summary": "Удалить чат",
+                "operationId": "a11905bdf575444fef44d0d8ba2bc308",
+                "parameters": [
+                    {
+                        "name": "chat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 10
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Удалено"
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    },
+                    "403": {
+                        "description": "Нет доступа"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/chats/{chat}/users": {
+            "post": {
+                "tags": [
+                    "Chats"
+                ],
+                "summary": "Добавить пользователя в чат по nickname",
+                "operationId": "b10400e66df996e28049cc3863b0a775",
+                "parameters": [
+                    {
+                        "name": "chat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 10
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nickname"
+                                ],
+                                "properties": {
+                                    "nickname": {
+                                        "type": "string",
+                                        "example": "nick"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "nickname": "nick"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Пользователь добавлен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "chat": {
+                                            "$ref": "#/components/schemas/Chat"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    },
+                    "422": {
+                        "description": "Ошибки валидации"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/chats/{chat}/read": {
+            "post": {
+                "tags": [
+                    "Chats"
+                ],
+                "summary": "Отметить сообщения прочитанными",
+                "operationId": "c80ed2c7778e5d5e18ddb7934354c22e",
+                "parameters": [
+                    {
+                        "name": "chat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 10
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "message_id": {
+                                        "type": "integer",
+                                        "example": 123,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "message_id": 123
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "Отмечено"
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/chats/group": {
+            "post": {
+                "tags": [
+                    "Chats"
+                ],
+                "summary": "Создать групповой чат",
+                "operationId": "14a8fafe7028efd4fb4c504416e4766b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "nicknames"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Команда проекта"
+                                    },
+                                    "nicknames": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "alice",
+                                            "bob"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "title": "Команда проекта",
+                                "nicknames": [
+                                    "alice",
+                                    "bob"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Чат создан",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "chat": {
+                                            "$ref": "#/components/schemas/Chat"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    },
+                    "422": {
+                        "description": "Ошибки валидации"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/chats/{chat}/messages": {
+            "get": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Список сообщений чата",
+                "operationId": "ca139938433ad42e57c2f93997d7862f",
+                "parameters": [
+                    {
+                        "name": "chat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 10
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Количество на странице (по умолчанию 10)",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1
+                        },
+                        "example": 10
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список сообщений",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "description": "Пагинация Laravel (data/links/meta)",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Message"
+                                            }
+                                        },
+                                        "links": {
+                                            "nullable": true
+                                        },
+                                        "meta": {
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Отправить сообщение в чат",
+                "operationId": "e56581288f5ce635142a2345ff0e35cc",
+                "parameters": [
+                    {
+                        "name": "chat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 10
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "body"
+                                ],
+                                "properties": {
+                                    "body": {
+                                        "type": "string",
+                                        "example": "Привет!"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "body": "Привет!"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Сообщение отправлено",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "$ref": "#/components/schemas/Message"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    },
+                    "422": {
+                        "description": "Ошибки валидации"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/chats/{chat}/messages/search": {
+            "get": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Поиск сообщений в чате",
+                "operationId": "d2b8210fb7aa0bc7722e0eb48b11aca0",
+                "parameters": [
+                    {
+                        "name": "chat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 10
+                    },
+                    {
+                        "name": "query",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "Привет"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 50,
+                            "minimum": 1
+                        },
+                        "example": 20
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Результаты поиска",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "messages": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Message"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    },
+                    "422": {
+                        "description": "Ошибки валидации"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/messages/{message}": {
+            "delete": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Удалить сообщение только для себя",
+                "operationId": "afa7ae5fe58a4a6dc87f66b85e2e7211",
+                "parameters": [
+                    {
+                        "name": "message",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 501
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Удалено"
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/messages/{message}/all": {
+            "delete": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Удалить сообщение для всех",
+                "operationId": "3bb26f7ad673af96fdb831ee268676ba",
+                "parameters": [
+                    {
+                        "name": "message",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 501
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Удалено"
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    },
+                    "403": {
+                        "description": "Нет прав"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/messages/{message}/forward": {
+            "post": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Переслать сообщение в другой чат",
+                "operationId": "be3d30bdcd2b834a5fb59f5e8c56faf2",
+                "parameters": [
+                    {
+                        "name": "message",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 501
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "chat_id"
+                                ],
+                                "properties": {
+                                    "chat_id": {
+                                        "type": "integer",
+                                        "example": 55
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "chat_id": 55
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Сообщение переслано",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "$ref": "#/components/schemas/Message"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    },
+                    "422": {
+                        "description": "Ошибки валидации"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/chats/{chat}/typing": {
+            "post": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Отметить набор текста пользователем",
+                "operationId": "f6d6fb5292c412ca81ed4dfde083aa58",
+                "parameters": [
+                    {
+                        "name": "chat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 10
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Статус обновлен"
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users/search": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Поиск пользователей по нику",
+                "operationId": "50a53f585cba4104c7e38fd169ab37d8",
+                "parameters": [
+                    {
+                        "name": "nickname",
+                        "in": "query",
+                        "description": "Предпочтительный параметр для поиска по нику",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "oneal182"
+                    },
+                    {
+                        "name": "query",
+                        "in": "query",
+                        "description": "Старое имя параметра, работает как алиас nickname",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "oneal"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 50,
+                            "minimum": 1
+                        },
+                        "example": 10
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Результаты поиска"
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    },
+                    "422": {
+                        "description": "Ошибки валидации"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/profile": {
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Обновить профиль пользователя",
+                "operationId": "76efbaa3f5827b1287f3dfc8e49471d3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "description": "Изменяемые поля профиля",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John",
+                                        "nullable": true
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "example": "Doe",
+                                        "nullable": true
+                                    },
+                                    "nickname": {
+                                        "type": "string",
+                                        "example": "johnny"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "Working",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "name": "John",
+                                "last_name": "Doe",
+                                "nickname": "johnny",
+                                "email": "john@example.com",
+                                "status": "Working"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Профиль обновлен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "user": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    },
+                    "422": {
+                        "description": "Ошибки валидации"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/profile/avatar": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Загрузить аватар",
+                "operationId": "7f77c3e0c05aba840507ff89038120a4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "avatar"
+                                ],
+                                "properties": {
+                                    "avatar": {
+                                        "description": "Файл изображения",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Аватар обновлен"
+                    },
+                    "401": {
+                        "description": "Не авторизован"
+                    },
+                    "422": {
+                        "description": "Ошибки валидации"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/ping": {
+            "get": {
+                "summary": "Проверка доступности API",
+                "description": "Простой endpoint для healthcheck",
+                "operationId": "9ed6db8c7d2cf74d27d5c3e76123c2ec",
+                "responses": {
+                    "200": {
+                        "description": "pong"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "User": {
+                "description": "Пользователь",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John",
+                        "nullable": true
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "john@example.com"
+                    },
+                    "nickname": {
+                        "type": "string",
+                        "example": "johnny"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "example": "Doe",
+                        "nullable": true
+                    },
+                    "avatar_path": {
+                        "type": "string",
+                        "example": "/storage/avatars/1.png",
+                        "nullable": true
+                    },
+                    "avatar_thumb_path": {
+                        "type": "string",
+                        "example": "/storage/avatars/thumbs/1.png",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "AuthTokenResponse": {
+                "description": "Ответ при успешной аутентификации/регистрации",
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "example": "1|Z4qz...jwtbearerstring"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                },
+                "type": "object"
+            },
+            "Chat": {
+                "description": "Чат",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Рабочий чат",
+                        "nullable": true
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "group"
+                    },
+                    "users": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/User"
+                        }
+                    },
+                    "unread_count": {
+                        "type": "integer",
+                        "example": 3
+                    }
+                },
+                "type": "object"
+            },
+            "Message": {
+                "description": "Сообщение",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 501
+                    },
+                    "body": {
+                        "type": "string",
+                        "example": "Привет!"
+                    },
+                    "sender_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "chat_id": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-02-04T12:30:00Z"
+                    },
+                    "sender": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "description": "Получите токен через /api/auth/login или /api/auth/register и передавайте в заголовке: Authorization: Bearer <token>",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Chats",
+            "description": "Chats"
+        },
+        {
+            "name": "Messages",
+            "description": "Messages"
+        },
+        {
+            "name": "Users",
+            "description": "Users"
+        }
+    ]
+}
