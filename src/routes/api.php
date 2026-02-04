@@ -14,7 +14,8 @@ Route::prefix('auth')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
         Route::post('/logout', [AuthController::class, 'logout']);
-        Route::post('/ping', [AuthController::class, 'ping']);
+        // Ограничиваем только Swagger-попытки, но оставляем частоту нормальной: 30 запросов в минуту на юзера
+        Route::post('/ping', [AuthController::class, 'ping'])->middleware('throttle:30,1');
     });
 });
 
