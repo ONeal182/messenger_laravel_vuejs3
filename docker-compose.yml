@@ -9,7 +9,6 @@ services:
     volumes:
       - ./src:/var/www
     working_dir: /var/www
-    command: php artisan reverb:start --host=0.0.0.0 --port=6001
     ports:
       - "5173:5173"
       - "6001:6001"
