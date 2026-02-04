@@ -283,9 +283,6 @@ onBeforeUnmount(() => {
                         <p class="text-[#e7efff] font-semibold truncate">
                             {{ user.nickname || user.name || user.email }}
                         </p>
-                        <p class="text-sm text-[#90a7ce] truncate">
-                            {{ user.email }}
-                        </p>
                     </div>
                 </li>
             </ul>
