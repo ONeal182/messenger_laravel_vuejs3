@@ -29,7 +29,6 @@ let lastMessageObserver = null
 const loadingOlder = ref(false)
 const pendingInitialScroll = ref(false)
 const allowLoadMore = ref(false)
-const showScroll = ref(true)
 const topSentinel = ref(null)
 let topObserver = null
 const searchOpen = ref(false)
@@ -214,10 +213,8 @@ watch(
 
         pendingInitialScroll.value = true
         allowLoadMore.value = false
-        showScroll.value = false
         setTimeout(() => {
             allowLoadMore.value = true
-            showScroll.value = true
         }, 1000)
         tryInitialScroll()
     },
@@ -738,7 +735,7 @@ function tryInitialScroll(attempt = 0) {
             <div
                 ref="messagesContainer"
                 class="flex-1 px-6 py-6 space-y-3 scroll-smooth absolute inset-0"
-                :class="showScroll ? 'overflow-y-auto' : 'overflow-hidden'"
+                class="overflow-y-auto"
                 @scroll.passive="onScroll"
             >
                 <div v-if="!store.activeChat" class="text-[#90a7ce] text-sm">
