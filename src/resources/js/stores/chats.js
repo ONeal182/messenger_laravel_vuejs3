@@ -28,7 +28,7 @@ export const useChatsStore = defineStore('chats', {
 
         async openChat(chat) {
             if (this.openingChatId === chat.id) return
-            if (this.activeChat?.id === chat.id && this.messages.length) return
+            if (this.activeChat?.id === chat.id) return
             this.openingChatId = chat.id
             this.activeChat = chat
             this.clearUnread(chat.id)
