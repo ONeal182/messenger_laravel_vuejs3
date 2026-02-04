@@ -42,6 +42,7 @@ const searchToggle = ref(null)
 let searchTimeout = null
 const showGroupInfo = ref(false)
 const showDownButton = ref(false)
+const lastReadRequested = ref(null)
 const emit = defineEmits(['open-group-info', 'open-user-profile'])
 function tryLoadIfAtTop() {
     const el = messagesContainer.value
@@ -407,16 +408,23 @@ onMounted(() => {
 
 function scheduleMarkRead(messageId = null) {
     if (!store.activeChat) return
+    const targetId = messageId || (store.messages[store.messages.length - 1]?.id)
+    if (!targetId) return
+    if (lastReadRequested.value && lastReadRequested.value >= targetId) return
+
     // сразу чистим локальный badge
     store.clearUnread(store.activeChat.id)
+    lastReadRequested.value = targetId
     if (markReadTimeout) {
         clearTimeout(markReadTimeout)
     }
     markReadTimeout = setTimeout(async () => {
         try {
-            await chatApi.markRead(store.activeChat.id, messageId)
+            await chatApi.markRead(store.activeChat.id, targetId)
         } catch (e) {
             console.warn('markRead failed', e)
+            // позволим повторить позже
+            lastReadRequested.value = null
         }
     }, 150)
 }
