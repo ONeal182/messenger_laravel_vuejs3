@@ -34,7 +34,7 @@ services:
       MYSQL_DATABASE: messenger
       MYSQL_ROOT_PASSWORD: root
     ports:
-    - "3306:3306" 
+    - "3307:3306" 
     volumes:
       - dbdata:/var/lib/mysql
       - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
