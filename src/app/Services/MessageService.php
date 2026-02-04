@@ -102,14 +102,6 @@ class MessageService
             return $message;
         });
 
-        // mark as read up to latest message
-        $latestId = $chat->messages()->max('id');
-        if ($latestId) {
-            $chat->users()->updateExistingPivot($user->id, [
-                'last_read_message_id' => $latestId,
-            ]);
-        }
-
         return $messages;
     }
 
