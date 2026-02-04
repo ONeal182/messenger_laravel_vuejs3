@@ -15,6 +15,7 @@ export const useChatsStore = defineStore('chats', {
         allowLoadMore: false,
         loading: false,
         typing: {},
+        openingChatId: null,
     }),
 
     actions: {
@@ -26,6 +27,9 @@ export const useChatsStore = defineStore('chats', {
         },
 
         async openChat(chat) {
+            if (this.openingChatId === chat.id) return
+            if (this.activeChat?.id === chat.id && this.messages.length) return
+            this.openingChatId = chat.id
             this.activeChat = chat
             this.clearUnread(chat.id)
             this.messagesPage = 1
@@ -67,6 +71,7 @@ export const useChatsStore = defineStore('chats', {
             setTimeout(() => {
                 this.allowLoadMore = true
             }, 1000)
+            this.openingChatId = null
         },
 
         openPendingChat(user, currentUser) {
