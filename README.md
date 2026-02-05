@@ -1,12 +1,12 @@
 # Laravel Messenger
 
-Минимальный Slack‑like мессенджер на Laravel 12 + Vite (Vue). Поднимается в Docker‑компоузе: PHP-FPM + Nginx + MySQL + Redis. WebSockets — через Laravel Reverb (порт 6001).
+Минимальный Slack‑like мессенджер на Laravel 12 + Vite (Vue). Поднимается в Docker‑compose: PHP-FPM + Nginx + MySQL + Redis. WebSockets — через Laravel Reverb (порт 6001).
 
 ## Требования
 - Docker + Docker Compose v2
 - make (опционально)
 
-## Старт за 5 минут
+## Старт 
 ```bash
 # 1. Клонируем репо и переходим в корень
 git clone <repo-url> && cd laravel-messanger
@@ -35,6 +35,7 @@ npm run dev -- --host
 
 После запуска:
 - API/SPA через Nginx: http://localhost:8080
+- Swagger: http://localhost:8080/api/documentation#/
 - Vite HMR: http://localhost:5173
 - Reverb WS: ws://localhost:6001
 
@@ -64,4 +65,4 @@ npm run dev -- --host
 Feature-тесты покрывают авторизацию, чаты, сообщения, пользователей. Запуск: `php artisan test`.
 
 ## Лицензия
-MIT (если иное не указано).
+MIT
