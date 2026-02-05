@@ -30,3 +30,11 @@ docker/**/data/
 docker/**/logs/
 docker/**/runtime/
 docker-compose.override.yml
+
+# Frontend (standalone)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example

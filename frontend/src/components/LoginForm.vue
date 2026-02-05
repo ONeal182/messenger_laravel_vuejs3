@@ -1,19 +1,19 @@
 <script setup>
-import { ref } from "vue";
-import { login } from "../services/authApi";
+import { ref } from 'vue'
+import { login } from '../services/authApi'
 
-const email = ref("");
-const password = ref("");
-const error = ref(null);
+const email = ref('')
+const password = ref('')
+const error = ref(null)
 
 async function submit() {
-    error.value = null;
+    error.value = null
 
     try {
-        await login(email.value, password.value);
-        window.location.reload(); // пока просто
+        await login(email.value, password.value)
+        window.location.reload() // пока просто
     } catch (e) {
-        error.value = "Login failed";
+        error.value = 'Login failed'
     }
 }
 </script>

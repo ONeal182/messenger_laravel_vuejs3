@@ -10,7 +10,6 @@ services:
       - ./src:/var/www
     working_dir: /var/www
     ports:
-      - "5173:5173"
       - "6001:6001"
     depends_on:
       - mysql
@@ -26,6 +25,24 @@ services:
       - ./docker/nginx:/etc/nginx/conf.d
     depends_on:
       - app
+
+  frontend:
+    image: node:20-alpine
+    container_name: messenger_frontend
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      VITE_BACKEND_URL: http://nginx
+      VITE_USE_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "100"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    depends_on:
+      - nginx
 
   mysql:
     image: mysql:8.0
