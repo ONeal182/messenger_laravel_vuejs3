@@ -54,12 +54,6 @@ php artisan reverb:start --host=0.0.0.0 --port=6001
 - `REDIS_HOST=redis`
 - `REVERB_PORT=6001`, `REVERB_HOST=0.0.0.0`
 
-## Сборка для продакшена (кратко)
-1. `npm run build`
-2. `php artisan config:cache && php artisan route:cache`
-3. Собрать образ на базе `docker/php/Dockerfile` + статикой из `public/build`.
-4. Выкатить образ + миграции (`php artisan migrate --force`) и запустить Reverb.
-
 ## Тесты
 Feature-тесты покрывают авторизацию, чаты, сообщения, пользователей. Запуск: `php artisan test`.
 
