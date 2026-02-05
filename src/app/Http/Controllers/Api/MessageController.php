@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Events\UserTyping;
-use Illuminate\Http\Request;
 use App\Services\MessageService;
+use App\Http\Requests\SendMessageRequest;
+use App\Http\Requests\SearchMessagesRequest;
+use App\Http\Requests\ForwardMessageRequest;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
@@ -50,12 +53,8 @@ class MessageController extends Controller
             new OA\Response(response: 422, description: "Ошибки валидации"),
         ]
     )]
-    public function store(Request $request, Chat $chat): JsonResponse
+    public function store(SendMessageRequest $request, Chat $chat): JsonResponse
     {
-        $request->validate([
-            'body' => ['required', 'string'],
-        ]);
-
         $message = $this->messageService->sendMessage(
             $chat,
             $request->user(),
@@ -137,12 +136,9 @@ class MessageController extends Controller
             new OA\Response(response: 422, description: "Ошибки валидации"),
         ]
     )]
-    public function search(Request $request, Chat $chat): JsonResponse
+    public function search(SearchMessagesRequest $request, Chat $chat): JsonResponse
     {
-        $data = $request->validate([
-            'query' => ['required', 'string', 'min:2'],
-            'limit' => ['nullable', 'integer', 'min:1', 'max:50'],
-        ]);
+        $data = $request->validated();
 
         $messages = $this->messageService->searchMessages(
             $chat,
@@ -226,11 +222,9 @@ class MessageController extends Controller
             new OA\Response(response: 422, description: "Ошибки валидации"),
         ]
     )]
-    public function forward(Request $request, Message $message): JsonResponse
+    public function forward(ForwardMessageRequest $request, Message $message): JsonResponse
     {
-        $data = $request->validate([
-            'chat_id' => ['required', 'exists:chats,id'],
-        ]);
+        $data = $request->validated();
 
         $newMessage = $this->messageService->forwardMessage(
             $message,

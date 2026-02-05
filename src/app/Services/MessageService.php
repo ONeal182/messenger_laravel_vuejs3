@@ -67,12 +67,10 @@ class MessageService
         $this->assertMember($chat, $user);
 
         // include pivot for read tracking
-        $chat->load([
-            'users' => function ($q) {
-                $q->select('users.id', 'users.email', 'users.name')
-                    ->withPivot('last_read_message_id', 'last_seen_at', 'role', 'joined_at');
-            },
-        ]);
+        // Получаем свежие pivot-данные по другим участникам (без зависимости от уже загруженной relation)
+        $othersPivot = $chat->users()
+            ->where('users.id', '!=', $user->id)
+            ->get(['users.id', 'chat_user.last_read_message_id', 'chat_user.last_seen_at', 'chat_user.updated_at']);
 
         $messages = $chat->messages()
             ->with([
@@ -89,13 +87,32 @@ class MessageService
             ->orderBy('id', 'desc')
             ->paginate($perPage);
 
-        $others = $chat->users->where('id', '!=', $user->id);
+        $messages->getCollection()->transform(function ($message) use ($othersPivot, $user) {
+            // Флаг read актуален только для исходящих сообщений текущего пользователя
+            if ($message->user_id !== $user->id) {
+                $message->setAttribute('read', false);
+                return $message;
+            }
 
-        $messages->getCollection()->transform(function ($message) use ($others) {
-            $readByOthers = $others->every(function ($participant) use ($message) {
-                $pivotVal = $participant->pivot?->last_read_message_id;
-                return $pivotVal && $pivotVal >= $message->id;
-            });
+            $readByOthers = $othersPivot->isNotEmpty()
+                && $othersPivot->every(function ($participant) use ($message) {
+                    $pivot = $participant->pivot;
+                    if (! $pivot?->last_read_message_id) {
+                        return false;
+                    }
+                    if ($pivot->last_read_message_id < $message->id) {
+                        return false;
+                    }
+                    $lastSeen = $pivot->last_seen_at ? \Illuminate\Support\Carbon::parse($pivot->last_seen_at) : null;
+                    if (! $lastSeen || $lastSeen->lt($message->created_at)) {
+                        return false;
+                    }
+                    $pivotUpdated = $pivot->updated_at ? \Illuminate\Support\Carbon::parse($pivot->updated_at) : null;
+                    if (! $pivotUpdated || $pivotUpdated->lt($message->created_at)) {
+                        return false;
+                    }
+                    return true;
+                });
 
             $message->setAttribute('read', $readByOthers);
 
@@ -109,14 +126,9 @@ class MessageService
     {
         $this->assertMember($chat, $user);
 
-        $chat->load([
-            'users' => function ($q) {
-                $q->select('users.id', 'users.email', 'users.name')
-                    ->withPivot('last_read_message_id', 'last_seen_at', 'role', 'joined_at');
-            },
-        ]);
-
-        $others = $chat->users->where('id', '!=', $user->id);
+        $othersPivot = $chat->users()
+            ->where('users.id', '!=', $user->id)
+            ->get(['users.id', 'chat_user.last_read_message_id', 'chat_user.last_seen_at', 'chat_user.updated_at']);
 
         $messages = $chat->messages()
             ->with([
@@ -135,11 +147,31 @@ class MessageService
             ->limit($limit)
             ->get();
 
-        $messages->transform(function ($message) use ($others) {
-            $readByOthers = $others->every(function ($participant) use ($message) {
-                $pivotVal = $participant->pivot?->last_read_message_id;
-                return $pivotVal && $pivotVal >= $message->id;
-            });
+        $messages->transform(function ($message) use ($othersPivot, $user) {
+            if ($message->user_id !== $user->id) {
+                $message->setAttribute('read', false);
+                return $message;
+            }
+
+            $readByOthers = $othersPivot->isNotEmpty()
+                && $othersPivot->every(function ($participant) use ($message) {
+                    $pivot = $participant->pivot;
+                    if (! $pivot?->last_read_message_id) {
+                        return false;
+                    }
+                    if ($pivot->last_read_message_id < $message->id) {
+                        return false;
+                    }
+                    $lastSeen = $pivot->last_seen_at ? \Illuminate\Support\Carbon::parse($pivot->last_seen_at) : null;
+                    if (! $lastSeen || $lastSeen->lt($message->created_at)) {
+                        return false;
+                    }
+                    $pivotUpdated = $pivot->updated_at ? \Illuminate\Support\Carbon::parse($pivot->updated_at) : null;
+                    if (! $pivotUpdated || $pivotUpdated->lt($message->created_at)) {
+                        return false;
+                    }
+                    return true;
+                });
 
             $message->setAttribute('read', $readByOthers);
 

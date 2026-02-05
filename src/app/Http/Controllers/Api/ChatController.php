@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Chat;
 use App\Services\ChatService;
+use App\Http\Requests\AddUserToChatRequest;
+use App\Http\Requests\CreatePrivateChatRequest;
+use App\Http\Requests\MarkChatReadRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -49,12 +52,8 @@ class ChatController extends Controller
             new OA\Response(response: 401, description: "Не авторизован"),
         ]
     )]
-    public function createPrivate(Request $request): JsonResponse
+    public function createPrivate(CreatePrivateChatRequest $request): JsonResponse
     {
-        $request->validate([
-            'user_id' => ['required', 'exists:users,id', 'different:user.id'],
-        ]);
-
         $chat = $this->chatService->createPrivateChat(
             $request->user(),
             User::findOrFail($request->user_id)
@@ -196,12 +195,8 @@ class ChatController extends Controller
             new OA\Response(response: 422, description: "Ошибки валидации"),
         ]
     )]
-    public function addUser(Request $request, Chat $chat): JsonResponse
+    public function addUser(AddUserToChatRequest $request, Chat $chat): JsonResponse
     {
-        $request->validate([
-            'nickname' => ['required', 'string', 'exists:users,nickname'],
-        ]);
-
         $chat = $this->chatService->addUserByNickname(
             $chat,
             $request->user(),
@@ -235,12 +230,8 @@ class ChatController extends Controller
             new OA\Response(response: 401, description: "Не авторизован"),
         ]
     )]
-    public function markRead(Request $request, Chat $chat): JsonResponse
+    public function markRead(MarkChatReadRequest $request, Chat $chat): JsonResponse
     {
-        $request->validate([
-            'message_id' => ['nullable', 'integer'],
-        ]);
-
         $this->chatService->markRead(
             $chat,
             $request->user(),

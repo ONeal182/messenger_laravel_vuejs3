@@ -21,7 +21,7 @@ class LoginTest extends TestCase
 
         // Act
         $response = $this->postJson('/api/auth/login', [
-            'email'    => $user->email,
+            'nickname' => $user->nickname,
             'password' => 'password123',
         ]);
 
@@ -45,7 +45,7 @@ class LoginTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/auth/login', [
-            'email'    => $user->email,
+            'nickname' => $user->nickname,
             'password' => 'wrong-password',
         ]);
 
