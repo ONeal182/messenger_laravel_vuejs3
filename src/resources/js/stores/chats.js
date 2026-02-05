@@ -57,12 +57,7 @@ export const useChatsStore = defineStore('chats', {
                 }
             }
 
-            // сразу отметить прочитанным (без ожидания UI-событий)
-            try {
-                await chatApi.markRead(chat.id)
-            } catch (e) {
-                console.warn('markRead failed', e)
-            }
+            // НЕ помечаем сразу: ждём пересечения последнего сообщения в viewport или явного message_id
 
             // сообщить списку о необходимости прокрутить вниз
             this.$patch({ _shouldScrollBottomSignal: Date.now() })

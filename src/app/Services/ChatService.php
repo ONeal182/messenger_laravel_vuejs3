@@ -202,7 +202,23 @@ class ChatService
         // ensure member
         $this->assertMember($chat, $user);
 
-        $targetId = $messageId ?: $chat->messages()->max('id');
+        $targetId = null;
+
+        if ($messageId) {
+            // Берём конкретное сообщение, убеждаемся что оно из этого чата и не моё
+            $message = $chat->messages()
+                ->where('id', $messageId)
+                ->where('user_id', '!=', $user->id)
+                ->first();
+
+            $targetId = $message?->id;
+        } else {
+            // Если не указано — берём последний входящий (не мой) месседж
+            $targetId = $chat->messages()
+                ->where('user_id', '!=', $user->id)
+                ->max('id');
+        }
+
         if (! $targetId) {
             return;
         }
