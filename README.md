@@ -28,9 +28,8 @@ php artisan migrate
 
 # 6. Запускаем фронтенд dev-сервер (в том же контейнере, отдельная сессия)
 npm run dev -- --host
-
-# Reverb (WebSocket) уже стартует автоматически из docker-compose командой:
-# php artisan reverb:start --host=0.0.0.0 --port=6001
+и
+php artisan reverb:start --host=0.0.0.0 --port=6001
 ```
 
 После запуска:
