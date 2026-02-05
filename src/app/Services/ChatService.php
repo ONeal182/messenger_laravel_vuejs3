@@ -183,7 +183,7 @@ class ChatService
 
         // уже внутри — возвращаем чат
         if ($chat->users()->where('users.id', $userToAdd->id)->exists()) {
-            return $chat->load('users:id,email');
+            return $chat->load('users:id,email,nickname,name,last_name');
         }
 
         $chat->users()->attach($userToAdd->id, [
@@ -191,7 +191,7 @@ class ChatService
             'joined_at' => now(),
         ]);
 
-        return $chat->load('users:id,email');
+        return $chat->load('users:id,email,nickname,name,last_name');
     }
 
     /**
